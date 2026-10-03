@@ -13,9 +13,10 @@
 <script>(window.MINDAR&&window.MINDAR.IMAGE)||document.write('<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"><\/script>')</script>
 <script>
 /* ============================================================
-   錄音設定：想改顯示的名字，只要改下面引號裡的字
+   錄音設定：想改顯示的名字，只要改下面引號裡的字。
    錄音檔和 index.html 放在同一層，檔名用兩位數號碼：
    01.mp3、02.m4a…（mp3、m4a、wav 都可以）
+   要放外公的話的那一號，在那一行加上  special: true
    ============================================================ */
 const BLESSINGS = [
   { no: 1,  name: "貝貝" },
@@ -39,18 +40,12 @@ const BLESSINGS = [
   { no: 19, name: "祝福語" },
   { no: 20, name: "全家人" }
 ];
+const CANDLE_FINALE = 20;   // 吹完蠟燭後要播放的號碼
 </script>
 <style>
 :root{
-  --ink:#2a0d2c;
-  --ink-2:#3b1640;
-  --paper:#f7efe0;
-  --paper-dim:#d9c9b4;
-  --seal-red:#d6231f;
-  --seal-rose:#c4167c;
-  --seal-orange:#ee7a12;
-  --seal-violet:#8a1ba6;
-  --gold:#f2c66b;
+  --ink:#2a0d2c; --paper:#f7efe0; --paper-dim:#d9c9b4;
+  --seal-red:#d6231f; --gold:#f2c66b; --gold-deep:#b8860b;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
@@ -63,57 +58,86 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .screen{display:none;min-height:100%}
 .screen.on{display:block}
 
-/* ---------- 首頁 ---------- */
+/* 首頁 */
 #home{padding:28px 20px 40px;max-width:640px;margin:0 auto;text-align:center}
-.art{position:relative;margin:4px auto 30px;padding:10px;background:var(--paper);
-  border-radius:4px;transform:rotate(-1.2deg);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.art{margin:4px auto 30px;padding:10px;background:var(--paper);border-radius:4px;transform:rotate(-1.2deg);box-shadow:0 18px 40px rgba(0,0,0,.45)}
 .art img{display:block;width:100%;height:auto}
 h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0 0 10px;line-height:1.25}
 .sub{font-size:20px;line-height:1.7;color:var(--paper-dim);margin:0 0 32px}
-.big{display:block;width:100%;border:0;border-radius:18px;padding:22px 18px;margin:0 0 16px;
-  font-size:24px;font-weight:700;letter-spacing:.08em;line-height:1.4}
+.big{display:block;width:100%;border:0;border-radius:18px;padding:20px 18px;margin:0 0 16px;font-size:24px;font-weight:700;letter-spacing:.08em;line-height:1.4}
 .big small{display:block;font-size:16px;font-weight:500;letter-spacing:0;opacity:.85;margin-top:4px}
 .big.ar{background:var(--seal-red);color:#fff;box-shadow:0 6px 0 #8e1210}
 .big.flat{background:var(--paper);color:var(--ink);box-shadow:0 6px 0 var(--paper-dim)}
 .big:active{transform:translateY(4px);box-shadow:none}
 .hint{font-size:16px;line-height:1.7;color:var(--paper-dim);margin-top:18px}
 
-/* ---------- 頂部列 ---------- */
-.bar{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;justify-content:space-between;
-  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;pointer-events:none}
-.bar button{pointer-events:auto;border:0;border-radius:999px;padding:12px 20px;font-size:19px;font-weight:700;
-  background:rgba(42,13,44,.82);color:var(--paper);backdrop-filter:blur(6px)}
+/* 頂部列 */
+.bar{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;gap:8px;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 12px;pointer-events:none}
+.bar button{pointer-events:auto;border:0;border-radius:999px;padding:12px 16px;font-size:18px;font-weight:700;
+  background:rgba(42,13,44,.82);color:var(--paper);backdrop-filter:blur(6px);white-space:nowrap}
+.bar .right{display:flex;gap:8px}
 .bar button.frozen{background:var(--gold);color:var(--ink)}
+.bar button[hidden]{display:none}
 
-/* ---------- AR ---------- */
+/* AR / 漂浮 */
 #ar{position:fixed;inset:0;background:#000;overflow:hidden}
 #arwrap{position:absolute;inset:0;overflow:hidden}
-#arwrap a-scene{position:absolute;inset:0}
-.guide{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:15;
-  text-align:center;font-size:21px;font-weight:700;line-height:1.5;padding:16px;border-radius:16px;
-  background:rgba(42,13,44,.82);backdrop-filter:blur(6px)}
-.frame-guide{position:fixed;z-index:12;left:8%;right:8%;top:28%;aspect-ratio:1.44/1;border:3px dashed rgba(247,239,224,.7);
-  border-radius:10px;pointer-events:none}
+#arwrap video.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+#arwrap a-scene{position:absolute;inset:0;z-index:1}
+.guide{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:15;
+  text-align:center;padding:14px;border-radius:18px;background:rgba(42,13,44,.84);backdrop-filter:blur(6px)}
+.guide p{margin:0 0 10px;font-size:20px;font-weight:700;line-height:1.5}
+.gbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.skipBtn{border:0;border-radius:14px;padding:12px 18px;font-size:19px;font-weight:700;background:rgba(247,239,224,.18);color:var(--paper)}
+.skipBtn[hidden]{display:none}
+.candleBtn{border:0;border-radius:14px;padding:12px 22px;font-size:20px;font-weight:700;background:var(--gold);color:var(--ink)}
+.frame-guide{position:fixed;z-index:12;left:8%;right:8%;top:24%;aspect-ratio:1.44/1;border:3px dashed rgba(247,239,224,.7);border-radius:10px;pointer-events:none}
 
-/* ---------- 直接點選 ---------- */
-#flat{padding:calc(env(safe-area-inset-top,0px) + 76px) 10px 40px}
-#flat h2{font-size:24px;text-align:center;margin:0 0 16px;font-weight:700;letter-spacing:.08em}
-.board{position:relative;max-width:900px;margin:0 auto;background:var(--paper);padding:0;border-radius:4px}
+/* 直接點選 */
+#flat{padding:calc(env(safe-area-inset-top,0px) + 76px) 10px 40px;text-align:center}
+#flat h2{font-size:24px;margin:0 0 16px;font-weight:700;letter-spacing:.08em}
+.board{position:relative;max-width:900px;margin:0 auto 22px;background:var(--paper);border-radius:4px;text-align:left}
 .board img{display:block;width:100%;height:auto;border-radius:4px}
 .spot{position:absolute;border:0;background:transparent;padding:0;border-radius:6px;transition:transform .25s, box-shadow .25s}
 .spot.lit{transform:scale(1.12);box-shadow:0 0 0 4px var(--gold),0 10px 30px rgba(0,0,0,.5);z-index:2}
-.spot.lit::after{content:"";position:absolute;inset:0;border-radius:6px;background:rgba(242,198,107,.18)}
+.board.dim .spot{background:rgba(20,6,22,.62);transition:background .4s, box-shadow .4s}
+.board.dim .spot.glow{background:transparent;box-shadow:0 0 0 3px var(--gold),0 0 16px 3px rgba(242,198,107,.75);z-index:2}
 
-/* ---------- 祝福卡 ---------- */
+/* 吹蠟燭 */
+#candle{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(20,6,22,.78);padding:20px}
+#candle.on{display:flex}
+.cbox{text-align:center;max-width:360px;width:100%}
+.cake{position:relative;width:120px;height:230px;margin:0 auto 18px}
+.stick{position:absolute;left:38px;bottom:0;width:44px;height:150px;border-radius:8px 8px 4px 4px;
+  background:repeating-linear-gradient(135deg,var(--seal-red) 0 14px,var(--paper) 14px 26px)}
+.wick{position:absolute;left:58px;bottom:150px;width:4px;height:16px;background:#3a2a20;border-radius:2px}
+.flame{position:absolute;left:44px;bottom:160px;width:32px;height:56px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
+  background:radial-gradient(ellipse at 50% 70%,#fff8d6 0 20%,var(--gold) 45%,#f07a13 75%,rgba(240,122,19,0) 100%);
+  transform-origin:50% 90%;animation:flick .18s ease-in-out infinite alternate;transition:opacity .5s}
+@keyframes flick{from{transform:scale(1,1) rotate(-2deg)}to{transform:scale(.95,1.06) rotate(2deg)}}
+.flame.out{opacity:0}
+.smoke{position:absolute;left:52px;bottom:170px;width:16px;height:16px;border-radius:50%;background:rgba(220,220,220,.6);opacity:0}
+.smoke.go{animation:smoke 1.4s ease-out forwards}
+@keyframes smoke{0%{opacity:.8;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(3)}}
+#candleText{font-size:24px;font-weight:700;line-height:1.5;margin:0 0 14px}
+.meter{height:12px;border-radius:6px;background:rgba(247,239,224,.2);overflow:hidden;margin:0 10px 22px}
+.meter i{display:block;height:100%;width:0;background:var(--gold);border-radius:6px;transition:width .08s}
+.cbox .row{display:flex;gap:12px}
+.cbox .row button{flex:1;border:0;border-radius:14px;padding:15px 8px;font-size:19px;font-weight:700}
+#candleCancel{background:rgba(247,239,224,.18);color:var(--paper)}
+#candleTap{background:var(--paper);color:var(--ink)}
+
+/* 祝福卡 */
 #card{position:fixed;inset:0;z-index:40;display:none;align-items:flex-end;justify-content:center;
   background:rgba(20,6,22,.55);padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 #card.on{display:flex}
-.sheet{width:100%;max-width:460px;background:var(--paper);color:var(--ink);border-radius:22px;padding:22px 22px 18px;
-  animation:rise .35s cubic-bezier(.2,.9,.3,1.2)}
+.sheet{width:100%;max-width:460px;background:var(--paper);color:var(--ink);border-radius:22px;padding:22px 22px 18px;animation:rise .35s cubic-bezier(.2,.9,.3,1.2)}
+.sheet.special{border:4px solid var(--gold);box-shadow:0 0 0 6px rgba(242,198,107,.35),0 0 40px rgba(242,198,107,.5)}
 @keyframes rise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .who{display:flex;align-items:center;gap:16px}
-.seal{flex:none;width:86px;height:86px;border-radius:8px;background-size:cover;background-position:center;
-  box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.seal{flex:none;width:86px;height:86px;border-radius:8px;background-size:cover;background-position:center;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.sheet.special .seal{box-shadow:0 0 0 4px var(--gold)}
 .who p{margin:0;font-size:17px;color:#6b4c62}
 .who h3{margin:2px 0 0;font-size:34px;font-weight:900;line-height:1.2}
 .status{display:flex;align-items:center;gap:10px;margin:18px 0 16px;font-size:20px;font-weight:700;min-height:30px}
@@ -122,8 +146,8 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
 .wave i:nth-child(2){animation-delay:.15s}.wave i:nth-child(3){animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}
 @keyframes wv{0%,100%{height:6px}50%{height:24px}}
 .status.idle .wave{display:none}
-.row{display:flex;gap:12px}
-.row button{flex:1;border:0;border-radius:14px;padding:16px 10px;font-size:21px;font-weight:700}
+.sheet .row{display:flex;gap:12px}
+.sheet .row button{flex:1;border:0;border-radius:14px;padding:16px 10px;font-size:21px;font-weight:700}
 .again{background:var(--seal-red);color:#fff}
 .close{background:#e8dcc8;color:var(--ink)}
 
@@ -132,37 +156,55 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
 </head>
 <body>
 
-<!-- 首頁 -->
 <section id="home" class="screen on">
   <div class="art"><img src="baishou.jpg" alt="百壽圖：二十個不同字體的壽字印章"></div>
   <h1>外公，生日快樂</h1>
   <p class="sub">這二十個壽字裡，<br>藏著全家人想對您說的話。</p>
-  <button class="big ar" id="goAR">對著百壽圖看<small>壽字會從畫上浮起來</small></button>
-  <button class="big flat" id="goFlat">直接點壽字聽<small>畫不在身邊時用這個</small></button>
-  <p class="hint">第一次使用時，手機會問能不能用相機，請按「允許」。</p>
+  <button class="big ar" id="goAR">對著百壽圖看<small>百壽圖會浮起來，之後在哪都能看</small></button>
+  <button class="big flat" id="goFlat">直接點壽字聽<small>最簡單，不用開相機</small></button>
+  <p class="hint">第一次使用時，手機會問能不能用相機、動作與方向，請都按「允許」。</p>
 </section>
 
-<!-- AR 模式 -->
 <section id="ar" class="screen">
   <div class="bar">
     <button id="arBack">返回</button>
-    <button id="freeze">定住畫面</button>
+    <span class="right">
+      <button id="recenter" hidden>移到眼前</button>
+      <button id="freeze" hidden>定住畫面</button>
+    </span>
   </div>
   <div id="arwrap"></div>
   <div class="frame-guide" id="frameGuide"></div>
-  <div class="guide" id="guide">把手機對準整張百壽圖</div>
+  <div class="guide">
+    <p id="guide">把手機對準整張百壽圖</p>
+    <div class="gbtns">
+      <button class="candleBtn" data-candle>🕯️ 吹蠟燭</button>
+      <button class="skipBtn" id="skip">畫不在身邊？</button>
+    </div>
+  </div>
 </section>
 
-<!-- 直接點選 -->
 <section id="flat" class="screen">
   <div class="bar"><button id="flatBack">返回</button><span></span></div>
   <h2>點一個壽字，聽聽是誰的祝福</h2>
   <div class="board" id="board"><img src="baishou.jpg" alt="百壽圖"></div>
+  <button class="candleBtn" data-candle>🕯️ 吹蠟燭</button>
 </section>
 
-<!-- 祝福卡 -->
+<div id="candle" role="dialog" aria-modal="true" aria-labelledby="candleText">
+  <div class="cbox">
+    <div class="cake"><div class="smoke" id="smoke"></div><div class="flame" id="flame"></div><div class="wick"></div><div class="stick"></div></div>
+    <p id="candleText">對著手機，吹一口氣</p>
+    <div class="meter"><i id="meter"></i></div>
+    <div class="row">
+      <button id="candleCancel">取消</button>
+      <button id="candleTap">吹不動？點這裡</button>
+    </div>
+  </div>
+</div>
+
 <div id="card" role="dialog" aria-modal="true" aria-labelledby="cardName">
-  <div class="sheet">
+  <div class="sheet" id="sheet">
     <div class="who">
       <div class="seal" id="cardSeal"></div>
       <div><p id="cardNo"></p><h3 id="cardName"></h3></div>
@@ -176,18 +218,17 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
 </div>
 
 <script>
-// 每個壽字在畫上的位置（佔整張圖的百分比：左、上、寬、高）
 const SPOTS=[[9.03,2.6,15.5,22.64],[25.89,2.6,15.42,22.64],[42.31,2.6,15.56,22.64],[58.42,2.6,16.06,22.64],[75.25,2.6,15.64,22.64],[9.03,26.88,15.5,22.32],[25.89,26.88,15.42,22.32],[42.31,26.88,15.56,22.32],[58.42,26.88,16.06,22.32],[75.25,26.88,15.64,22.32],[9.03,50.44,15.5,22.52],[25.89,50.44,15.42,22.52],[42.31,50.44,15.56,22.52],[58.42,50.44,16.06,22.52],[75.25,50.44,15.64,22.52],[9.03,74.68,15.5,22.48],[25.89,74.68,15.42,22.48],[42.31,74.68,15.56,22.48],[58.42,74.68,16.06,22.48],[75.25,74.68,15.64,22.48]];
-const ASPECT=1250/1800; // 圖高 / 圖寬
+const ASPECT=1250/1800;
 const pad=n=>String(n).padStart(2,"0");
 const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-/* ---------- 聲音 ---------- */
+/* ================= 聲音 ================= */
 const player=new Audio(); player.preload="auto"; player.setAttribute("playsinline","");
-let current=null, onEndCb=null;
-const FOUND={};
-let scanDone=false;
-(async function scanAudio(){ // 開網頁時先找好每個號碼的錄音檔
+let current=null;
+const FOUND={}; let scanDone=false;
+(async function scanAudio(){
   const exts=["mp3","m4a","wav","aac"];
   await Promise.all(BLESSINGS.map(async b=>{
     for(const e of exts){
@@ -197,7 +238,7 @@ let scanDone=false;
   }));
   scanDone=true;
 })();
-function unlockAudio(){ // 第一次按按鈕時解鎖手機的聲音
+function unlockAudio(){
   try{
     player.src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
     const p=player.play(); if(p) p.catch(()=>{});
@@ -211,132 +252,318 @@ function playNo(no){
     setTimeout(()=>{ if(current===no) setStatus(FOUND[no]?"tap":"missing"); },2500);
     return;
   }
-  player.onended=()=>{ setStatus("done"); onEndCb&&onEndCb(); };
+  player.onended=()=>setStatus("done");
   player.onerror=()=>setStatus("broken");
-  player.src=url;
-  setStatus("loading");
+  player.src=url; setStatus("loading");
   const p=player.play();
   if(p) p.then(()=>setStatus("playing")).catch(e=>setStatus(e.name==="NotAllowedError"?"tap":"broken"));
 }
 function setStatus(s){
-  const st=$("status"), t=$("statusText");
-  st.classList.toggle("idle", s!=="playing");
-  t.textContent={loading:"準備播放…",playing:"正在播放",done:"播放完畢",missing:"這段錄音還沒放進來",tap:"請按「再聽一次」",broken:"這段錄音打不開，請換成 m4a 或 mp3 檔"}[s]||"";
+  $("status").classList.toggle("idle", s!=="playing");
+  $("statusText").textContent={loading:"準備播放…",playing:"正在播放",done:"播放完畢",missing:"這段錄音還沒放進來",tap:"請按「再聽一次」",broken:"這段錄音打不開，請換成 m4a 或 mp3 檔"}[s]||"";
 }
 
-/* ---------- 祝福卡 ---------- */
-function openCard(no, endCb){
+/* ================= 祝福卡 ================= */
+function openCard(no){
   const b=BLESSINGS.find(x=>x.no===no)||{name:""};
-  current=no; onEndCb=null;
+  current=no;
+  $("sheet").classList.toggle("special",!!b.special);
   $("cardSeal").style.backgroundImage="url("+pad(no)+".jpg)";
-  $("cardNo").textContent="第 "+no+" 個壽字";
+  $("cardNo").textContent=b.special?"外公想對大家說":"第 "+no+" 個壽字";
   $("cardName").textContent=b.name;
   $("card").classList.add("on");
-  playNo(no); onEndCb=endCb||null;
+  playNo(no);
 }
 function closeCard(){
   $("card").classList.remove("on"); player.pause();
-  document.querySelectorAll(".spot.lit").forEach(x=>x.classList.remove("lit"));
-  resetTiles();
-  current=null;
+  document.querySelectorAll(".spot.lit,.spot.glow").forEach(x=>x.classList.remove("lit","glow"));
+  $("board").classList.remove("dim");
+  resetTiles(); current=null;
 }
 $("again").onclick=()=>{ if(current) playNo(current); };
 $("close").onclick=closeCard;
 $("card").addEventListener("click",e=>{ if(e.target.id==="card") closeCard(); });
 
-/* ---------- 畫面切換 ---------- */
 function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id)); window.scrollTo(0,0); }
 
-/* ---------- 直接點選 ---------- */
-const board=$("board");
+/* ================= 直接點選 ================= */
+const spots=[];
 SPOTS.forEach((p,i)=>{
   const b=document.createElement("button"); b.className="spot";
   b.style.cssText=`left:${p[0]}%;top:${p[1]}%;width:${p[2]}%;height:${p[3]}%`;
   b.setAttribute("aria-label","第 "+(i+1)+" 個壽字："+(BLESSINGS[i]?.name||""));
-  b.onclick=()=>{ document.querySelectorAll(".spot.lit").forEach(x=>x.classList.remove("lit")); b.classList.add("lit"); openCard(i+1); };
-  board.appendChild(b);
+  b.onclick=()=>{ closeCard(); b.classList.add("lit"); openCard(i+1); };
+  $("board").appendChild(b); spots.push(b);
 });
-$("goFlat").onclick=()=>{ unlockAudio(); show("flat"); };
-$("flatBack").onclick=()=>{ closeCard(); show("home"); };
+$("goFlat").onclick=()=>{ unlockAudio(); mode="flat"; show("flat"); };
+$("flatBack").onclick=()=>{ closeCard(); mode=null; show("home"); };
 
-/* ---------- AR ---------- */
-const AR_READY=!!(window.AFRAME && AFRAME.components && AFRAME.components["mindar-image"]);
-$("goAR").onclick=()=>{
-  unlockAudio();
-  if(!AR_READY){ alert("AR 程式沒有載入成功，請檢查 aframe.min.js 和 mindar.js 有沒有上傳，或先用「直接點壽字聽」。"); return; }
-  try{ startAR(); }catch(e){ show("ar"); $("guide").textContent="AR 啟動失敗："+e.message; }
-};
-let sceneEl=null, arSys=null, found=false, frozen=false, risen=false;
-if(AR_READY) AFRAME.registerComponent("shou-tile",{
-  schema:{no:{type:"int"}},
-  init(){
-    this.el.addEventListener("click",()=>{
-      if(!found && !frozen) return;
-      resetTiles();
-      const el=this.el;
-      el.setAttribute("animation__pick",{property:"position",to:posOf(this.data.no-1,0.14),dur:350,easing:"easeOutBack"});
-      el.setAttribute("animation__big",{property:"scale",to:"1.3 1.3 1",dur:350,easing:"easeOutBack"});
-      openCard(this.data.no);
-    });
+/* ================= 吹蠟燭 ================= */
+let mic=null, blowing=false;
+document.querySelectorAll("[data-candle]").forEach(b=>b.onclick=openCandle);
+function openCandle(){
+  unlockAudio(); closeCard();
+  $("flame").classList.remove("out"); $("smoke").classList.remove("go");
+  $("candleText").textContent="對著手機，吹一口氣"; $("meter").style.width="0";
+  $("candle").classList.add("on"); blowing=true;
+  startMic();
+}
+async function startMic(){
+  let ctx;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    ctx=new AC(); ctx.resume&&ctx.resume();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    if(!blowing){ stream.getTracks().forEach(t=>t.stop()); ctx.close(); return; }
+    const src=ctx.createMediaStreamSource(stream), an=ctx.createAnalyser(); an.fftSize=1024; src.connect(an);
+    mic={stream,ctx};
+    const buf=new Float32Array(an.fftSize);
+    let t0=performance.now(), last=t0, base=0, n=0, acc=0;
+    const loop=now=>{
+      if(!blowing||!mic) return;
+      an.getFloatTimeDomainData(buf);
+      let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i];
+      const rms=Math.sqrt(s/buf.length), dt=(now-last)/1000; last=now;
+      if(now-t0<600){ base+=rms; n++; }               // 先聽一下環境音
+      const th=Math.min(0.2,Math.max(0.06,(n?base/n:0)*3));
+      $("meter").style.width=Math.min(100,rms/th*70)+"%";
+      $("flame").style.transform=`scale(${Math.max(.6,1-rms/th*.3)},1) skewX(${Math.min(25,rms/th*12)}deg)`;
+      if(now-t0>600){ acc = rms>th ? acc+dt : Math.max(0,acc-dt*2); }
+      if(acc>0.3){ blownOut(); return; }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }catch(e){
+    try{ ctx&&ctx.close(); }catch(_){}
+    if(blowing) $("candleText").textContent="麥克風沒有打開，請按「吹不動？點這裡」";
   }
-});
+}
+function stopMic(){
+  if(mic){ try{ mic.stream.getTracks().forEach(t=>t.stop()); mic.ctx.close(); }catch(e){} mic=null; }
+  try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+}
+async function blownOut(){
+  if(!blowing) return; blowing=false; stopMic();
+  $("flame").style.transform=""; $("flame").classList.add("out"); $("smoke").classList.add("go");
+  $("candleText").textContent="生日快樂！"; $("meter").style.width="100%";
+  await sleep(1100);
+  $("candle").classList.remove("on");
+  await lightAll();
+  openCard(CANDLE_FINALE);
+}
+$("candleTap").onclick=()=>{ unlockAudio(); blownOut(); };
+$("candleCancel").onclick=()=>{ blowing=false; stopMic(); $("candle").classList.remove("on"); };
+
+/* ================= AR：認出百壽圖 → 浮起來 → 飄在房間裡 ================= */
+let mode=null, sceneEl=null, arSys=null, found=false, frozen=false, risen=false;
+let phase=null, stableTimer=null, motionOK=true, bobBase=null, bobAmp=0;
+const AR_READY=!!(window.AFRAME && AFRAME.components && AFRAME.components["mindar-image"]);
+const THREE_=AR_READY?AFRAME.THREE:null;
+
 function posOf(i,z){
-  const p=SPOTS[i]; const cx=(p[0]+p[2]/2)/100, cy=(p[1]+p[3]/2)/100;
+  const p=SPOTS[i], cx=(p[0]+p[2]/2)/100, cy=(p[1]+p[3]/2)/100;
   return `${(cx-0.5).toFixed(4)} ${((0.5-cy)*ASPECT).toFixed(4)} ${z}`;
 }
+function restZ(){ return risen?0.035:0.001; }
 function resetTiles(){
   if(!sceneEl) return;
   sceneEl.querySelectorAll("[shou-tile]").forEach((el,i)=>{
-    el.setAttribute("animation__pick",{property:"position",to:posOf(i,risen?0.035:0.001),dur:300});
+    el.setAttribute("animation__pick",{property:"position",to:posOf(i,restZ()),dur:300});
     el.setAttribute("animation__big",{property:"scale",to:"1 1 1",dur:300});
+    el.setAttribute("animation__col",{property:"material.color",type:"color",to:"#ffffff",dur:300});
+    const g=el.querySelector(".glowp"); g&&g.setAttribute("animation__glow",{property:"material.opacity",to:0,dur:300});
   });
 }
 function riseAll(){
-  if(risen) return; risen=true;
+  if(risen||!sceneEl) return; risen=true;
   sceneEl.querySelectorAll("[shou-tile]").forEach((el,i)=>{
-    el.setAttribute("animation__rise",{property:"position",from:posOf(i,0.001),to:posOf(i,0.035),dur:600,delay:i*90,easing:"easeOutBack"});
-    el.setAttribute("animation__fade",{property:"material.opacity",from:0,to:1,dur:400,delay:i*90});
+    el.setAttribute("animation__rise",{property:"position",from:posOf(i,0.001),to:posOf(i,0.035),dur:600,delay:i*60,easing:"easeOutBack"});
+    el.setAttribute("animation__fade",{property:"material.opacity",from:0,to:1,dur:400,delay:i*60});
   });
 }
-function buildScene(){
-  const w=$("arwrap");
-  const tiles=SPOTS.map((p,i)=>{
-    const tw=(p[2]/100).toFixed(4), th=((p[3]/100)*ASPECT).toFixed(4);
-    return `<a-plane class="clickable" shou-tile="no:${i+1}" position="${posOf(i,0.001)}" width="${tw}" height="${th}"
-      material="src:#t${i+1}; transparent:true; opacity:0; shader:flat"></a-plane>`;
-  }).join("");
-  const assets=SPOTS.map((_,i)=>`<img id="t${i+1}" src="${pad(i+1)}.jpg">`).join("");
-  w.innerHTML=`<a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 0.001"
-      color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true" vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-    <a-assets>${assets}</a-assets>
-    <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
-    <a-entity id="anchor" mindar-image-target="targetIndex: 0">${tiles}</a-entity>
-  </a-scene>`;
-  sceneEl=w.querySelector("a-scene");
-  const anchor=sceneEl.querySelector("#anchor");
-  anchor.addEventListener("targetFound",()=>{ found=true; $("frameGuide").style.display="none"; $("guide").textContent="點一個壽字，聽聽是誰的祝福"; riseAll(); });
-  anchor.addEventListener("targetLost",()=>{ found=false; if(!frozen){ $("guide").textContent="把手機對準整張百壽圖"; } });
-  sceneEl.addEventListener("arError",()=>{ $("guide").textContent="相機打不開。請改用「直接點壽字聽」，或用 Safari／Chrome 開啟這個網址。"; });
+
+if(AR_READY){
+  AFRAME.registerComponent("shou-tile",{
+    schema:{no:{type:"int"}},
+    init(){
+      this.el.addEventListener("click",()=>{
+        if(phase==="lifting") return;
+        if(phase==="scan" && !found) return;
+        if($("candle").classList.contains("on")) return;
+        closeCard();
+        this.el.setAttribute("animation__pick",{property:"position",to:posOf(this.data.no-1,0.14),dur:350,easing:"easeOutBack"});
+        this.el.setAttribute("animation__big",{property:"scale",to:"1.3 1.3 1",dur:350,easing:"easeOutBack"});
+        openCard(this.data.no);
+      });
+    }
+  });
+  // 用手機的方向感應轉動相機：以「浮起來那一刻」為基準
+  AFRAME.registerComponent("gyro-delta",{
+    init(){
+      const T=THREE_;
+      this.on=false; this.ori=null; this.q0=null;
+      this.qd=new T.Quaternion(); this.qz=new T.Quaternion(); this.e=new T.Euler();
+      this.q1=new T.Quaternion(-Math.sqrt(.5),0,0,Math.sqrt(.5)); this.zee=new T.Vector3(0,0,1);
+      this.onOri=e=>{ if(e.alpha==null && e.beta==null) return; this.ori={a:e.alpha||0,b:e.beta||0,g:e.gamma||0}; };
+      window.addEventListener("deviceorientation",this.onOri);
+    },
+    remove(){ window.removeEventListener("deviceorientation",this.onOri); },
+    start(){ this.on=true; this.q0=null; },
+    recenter(){ this.q0=null; },
+    tick(){
+      if(!this.on||!this.ori) return;
+      const d=Math.PI/180, o=(screen.orientation&&screen.orientation.angle)||window.orientation||0;
+      this.e.set(this.ori.b*d, this.ori.a*d, -this.ori.g*d, "YXZ");
+      this.qd.setFromEuler(this.e).multiply(this.q1).multiply(this.qz.setFromAxisAngle(this.zee,-o*d));
+      if(!this.q0) this.q0=this.qd.clone();
+      this.el.object3D.quaternion.copy(this.q0.clone().invert().multiply(this.qd));
+    }
+  });
 }
+
+function tilesMarkup(){
+  return SPOTS.map((p,i)=>{
+    const tw=p[2]/100, th=(p[3]/100)*ASPECT;
+    return `<a-plane class="clickable" shou-tile="no:${i+1}" position="${posOf(i,0.001)}" width="${tw.toFixed(4)}" height="${th.toFixed(4)}"
+      material="src:#t${i+1}; transparent:true; opacity:0; shader:flat">
+      <a-plane class="glowp" position="0 0 -0.002" width="${(tw*1.05).toFixed(4)}" height="${(th*1.05).toFixed(4)}" material="color:#f2c66b; shader:flat; transparent:true; opacity:0"></a-plane>
+    </a-plane>`;
+  }).join("");
+}
+function setGuide(t){ $("guide").textContent=t; }
+
 function startAR(){
-  show("ar"); found=false; frozen=false; risen=false;
+  mode="ar"; phase="scan"; show("ar");
+  found=false; frozen=false; risen=false; bobBase=null;
+  $("freeze").hidden=true; $("recenter").hidden=true; $("skip").hidden=false;
   $("freeze").classList.remove("frozen"); $("freeze").textContent="定住畫面";
-  $("frameGuide").style.display="block"; $("guide").textContent="開啟相機中…";
-  buildScene();
-  const go=()=>{ arSys=sceneEl.systems["mindar-image-system"]; arSys.start(); $("guide").textContent="把手機對準整張百壽圖"; };
+  $("frameGuide").style.display="block"; setGuide("開啟相機中…");
+  $("arwrap").innerHTML=`<a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 0.001"
+      color-space="sRGB" renderer="colorManagement: true; antialias: true" vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-assets><img id="artimg" src="baishou.jpg">${SPOTS.map((_,i)=>`<img id="t${i+1}" src="${pad(i+1)}.jpg">`).join("")}</a-assets>
+    <a-camera id="cam" position="0 0 0" look-controls="enabled: false" wasd-controls="enabled: false" gyro-delta
+      cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 1000000; objects: .clickable"></a-camera>
+    <a-entity id="anchor" mindar-image-target="targetIndex: 0">
+      <a-entity id="lifter">
+        <a-plane id="shadow" position="0.03 -0.04 -0.03" width="1.02" height="${(ASPECT+0.02).toFixed(4)}" material="color:#000; shader:flat; transparent:true; opacity:0"></a-plane>
+        <a-plane id="artp" width="1" height="${ASPECT.toFixed(4)}" material="src:#artimg; shader:flat; transparent:true; opacity:0"></a-plane>
+        ${tilesMarkup()}
+      </a-entity>
+    </a-entity>
+    <a-entity id="floater"></a-entity>
+  </a-scene>`;
+  sceneEl=$("arwrap").querySelector("a-scene");
+  const anchor=sceneEl.querySelector("#anchor");
+  anchor.addEventListener("targetFound",()=>{
+    if(phase!=="scan") return;
+    found=true; $("frameGuide").style.display="none"; setGuide("找到了！拿穩一下…"); riseAll();
+    clearTimeout(stableTimer); stableTimer=setTimeout(()=>{ if(found&&phase==="scan") liftOff(true); },1300);
+  });
+  anchor.addEventListener("targetLost",()=>{
+    if(phase!=="scan") return;
+    found=false; clearTimeout(stableTimer); setGuide("把手機對準整張百壽圖");
+  });
+  sceneEl.addEventListener("arError",()=>setGuide("相機打不開，可以按「畫不在身邊？」，或改用「直接點壽字聽」。"));
+  const go=()=>{ arSys=sceneEl.systems["mindar-image-system"]; arSys.start(); if(phase==="scan") setGuide("把手機對準整張百壽圖"); };
   sceneEl.hasLoaded?go():sceneEl.addEventListener("loaded",go);
 }
+
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function tween(dur,fn){ return new Promise(res=>{ const t0=performance.now(); const f=now=>{ const k=Math.min(1,(now-t0)/dur); fn(ease(k)); k<1?requestAnimationFrame(f):res(); }; requestAnimationFrame(f); }); }
+function fadeEl(id,to,dur){ const el=sceneEl&&sceneEl.querySelector("#"+id); el&&el.setAttribute("animation__f",{property:"material.opacity",to,dur}); }
+
+async function liftOff(fromMarker){
+  if(phase!=="scan"||!sceneEl) return;
+  phase="lifting"; clearTimeout(stableTimer);
+  $("skip").hidden=true; $("frameGuide").style.display="none";
+  try{ arSys&&arSys.pause(true); }catch(e){}           // 停止辨識，但相機畫面繼續
+  const T=THREE_, lifterEl=sceneEl.querySelector("#lifter"), lifter=lifterEl.object3D;
+  const floater=sceneEl.querySelector("#floater").object3D, cam=sceneEl.camera;
+  cam.updateProjectionMatrix();
+  const tan=Math.tan(cam.fov*Math.PI/360), asp=cam.aspect||1;
+  const fitD=s=>Math.max(s/(0.86*2*tan*asp), s*ASPECT/(0.6*2*tan));
+  if(fromMarker){
+    sceneEl.object3D.updateMatrixWorld(true);
+    floater.attach(lifter);                            // 從實體畫的位置「拿起來」
+  }else{
+    floater.add(lifter);
+    const s=1000, d=fitD(s);
+    lifter.position.set(0,0,-d*1.6); lifter.quaternion.identity(); lifter.scale.setScalar(s);
+    riseAll();
+  }
+  const p0=lifter.position.clone(), q0=lifter.quaternion.clone(), s0=lifter.scale.x;
+  const d=fitD(s0), visH=2*d*tan;
+  const p1=new T.Vector3(0,visH*0.07,-d), q1=new T.Quaternion();
+  setGuide(fromMarker?"百壽圖浮起來了！":"百壽圖來了！");
+  fadeEl("artp",1,600); fadeEl("shadow",0.35,900);
+  await new Promise(r=>setTimeout(r,fromMarker?650:150));
+  if(!sceneEl) return;
+  await tween(fromMarker?1700:1100,k=>{
+    lifter.position.lerpVectors(p0,p1,k);
+    lifter.quaternion.slerpQuaternions(q0,q1,k);
+  });
+  if(!sceneEl) return;
+  bobBase=p1.clone(); bobAmp=visH*0.008;
+  phase="float";
+  sceneEl.querySelector("#cam").components["gyro-delta"].start();
+  $("recenter").hidden=false; $("freeze").hidden=false;
+  setGuide(motionOK?"轉動手機看看，再點一個壽字聽祝福":"點一個壽字，聽聽是誰的祝福");
+  const bob=now=>{ if(!sceneEl||phase!=="float") return; if(!frozen) lifter.position.y=bobBase.y+Math.sin(now/900)*bobAmp; requestAnimationFrame(bob); };
+  requestAnimationFrame(bob);
+}
+
+function recenter(){
+  if(phase!=="float"||!sceneEl) return;
+  sceneEl.querySelector("#cam").components["gyro-delta"].recenter();
+}
+$("recenter").onclick=recenter;
+$("skip").onclick=()=>liftOff(false);
+
+async function lightAll(){   // 二十個壽字依序亮起
+  const gap=150;
+  if(mode==="flat"){
+    $("board").classList.add("dim"); await sleep(500);
+    spots.forEach((s,i)=>setTimeout(()=>s.classList.add("glow"),i*gap));
+  }else if(sceneEl){
+    if(phase==="scan") await liftOff(false).catch(()=>{});
+    const tiles=[...sceneEl.querySelectorAll("[shou-tile]")];
+    tiles.forEach(el=>{ el.setAttribute("material","opacity",1); el.setAttribute("animation__col",{property:"material.color",type:"color",to:"#3a3a3a",dur:400}); });
+    await sleep(500);
+    tiles.forEach((el,i)=>setTimeout(()=>{
+      el.setAttribute("animation__col",{property:"material.color",type:"color",to:"#ffffff",dur:300});
+      el.setAttribute("animation__pick",{property:"position",to:posOf(i,0.07),dur:350,easing:"easeOutBack"});
+      const g=el.querySelector(".glowp"); g&&g.setAttribute("animation__glow",{property:"material.opacity",to:0.95,dur:300});
+    },i*gap));
+  }
+  await sleep(SPOTS.length*gap+700);
+}
+
+/* ================= 共用按鈕 ================= */
+$("goAR").onclick=()=>{
+  unlockAudio();
+  if(!AR_READY){ alert("AR 程式沒有載入成功，請先用「直接點壽字聽」。"); return; }
+  motionOK=true;
+  if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==="function"){
+    DeviceOrientationEvent.requestPermission().then(r=>{ motionOK=(r==="granted"); }).catch(()=>{ motionOK=false; });
+  }
+  try{ startAR(); }catch(e){ setGuide("AR 啟動失敗："+e.message); }
+};
 function stopAR(){
-  closeCard();
+  closeCard(); blowing=false; stopMic(); $("candle").classList.remove("on");
+  clearTimeout(stableTimer);
   try{ arSys&&arSys.stop(); }catch(e){}
-  arSys=null; sceneEl=null; $("arwrap").innerHTML="";
+  arSys=null; sceneEl=null; phase=null; $("arwrap").innerHTML=""; mode=null;
 }
 $("arBack").onclick=()=>{ stopAR(); show("home"); };
 $("freeze").onclick=()=>{
-  if(!arSys) return;
+  if(phase!=="float"||!sceneEl) return;
   frozen=!frozen;
-  if(frozen){ arSys.pause(); $("freeze").textContent="恢復鏡頭"; $("freeze").classList.add("frozen"); $("guide").textContent="畫面已定住，可以放心慢慢點"; }
-  else{ arSys.unpause(); $("freeze").textContent="定住畫面"; $("freeze").classList.remove("frozen"); $("guide").textContent=found?"點一個壽字，聽聽是誰的祝福":"把手機對準整張百壽圖"; }
+  const g=sceneEl.querySelector("#cam").components["gyro-delta"];
+  if(frozen){ g.on=false; arSys&&arSys.video&&arSys.video.pause(); }
+  else{ g.on=true; arSys&&arSys.video&&arSys.video.play().catch(()=>{}); }
+  $("freeze").textContent=frozen?"恢復鏡頭":"定住畫面";
+  $("freeze").classList.toggle("frozen",frozen);
+  setGuide(frozen?"畫面已定住，可以放心慢慢點":"轉動手機看看，再點一個壽字聽祝福");
 };
 </script>
 </body>
