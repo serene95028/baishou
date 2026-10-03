@@ -8,7 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
 <script src="lib/aframe.min.js"></script>
+<script>window.AFRAME||document.write('<script src="https://cdn.jsdelivr.net/npm/aframe@1.5.0/dist/aframe-v1.5.0.min.js"><\/script>')</script>
 <script src="lib/mindar.js"></script>
+<script>(window.MINDAR&&window.MINDAR.IMAGE)||document.write('<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"><\/script>')</script>
 <script>
 /* ============================================================
    錄音設定：想改顯示的名字，只要改下面引號裡的字
@@ -183,27 +185,43 @@ const $=id=>document.getElementById(id);
 /* ---------- 聲音 ---------- */
 const player=new Audio(); player.preload="auto"; player.setAttribute("playsinline","");
 let current=null, onEndCb=null;
+const FOUND={};
+let scanDone=false;
+(async function scanAudio(){ // 開網頁時先找好每個號碼的錄音檔
+  const exts=["mp3","m4a","wav","aac"];
+  await Promise.all(BLESSINGS.map(async b=>{
+    for(const e of exts){
+      const url="audio/"+pad(b.no)+"."+e;
+      try{ const r=await fetch(url,{method:"HEAD",cache:"no-store"}); if(r.ok){ FOUND[b.no]=url; return; } }catch(err){}
+    }
+  }));
+  scanDone=true;
+})();
 function unlockAudio(){ // 第一次按按鈕時解鎖手機的聲音
-  player.muted=true;
-  player.src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
-  player.play().catch(()=>{}).finally(()=>{player.pause();player.muted=false;});
+  try{
+    player.src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+    const p=player.play(); if(p) p.catch(()=>{});
+  }catch(e){}
 }
 function playNo(no){
-  const exts=["mp3","m4a","wav","aac"]; let i=0;
-  setStatus("loading");
-  const tryNext=()=>{
-    if(i>=exts.length){ setStatus("missing"); return; }
-    player.onerror=()=>{ i++; tryNext(); };
-    player.src="audio/"+pad(no)+"."+exts[i];
-    player.play().then(()=>setStatus("playing")).catch(e=>{ if(e.name==="NotAllowedError") setStatus("tap"); });
-  };
+  const url=FOUND[no];
+  if(!url){
+    if(scanDone){ setStatus("missing"); return; }
+    setStatus("loading");
+    setTimeout(()=>{ if(current===no) setStatus(FOUND[no]?"tap":"missing"); },2500);
+    return;
+  }
   player.onended=()=>{ setStatus("done"); onEndCb&&onEndCb(); };
-  tryNext();
+  player.onerror=()=>setStatus("broken");
+  player.src=url;
+  setStatus("loading");
+  const p=player.play();
+  if(p) p.then(()=>setStatus("playing")).catch(e=>setStatus(e.name==="NotAllowedError"?"tap":"broken"));
 }
 function setStatus(s){
   const st=$("status"), t=$("statusText");
   st.classList.toggle("idle", s!=="playing");
-  t.textContent={loading:"準備播放…",playing:"正在播放",done:"播放完畢",missing:"這段錄音還沒放進來",tap:"請按「再聽一次」"}[s]||"";
+  t.textContent={loading:"準備播放…",playing:"正在播放",done:"播放完畢",missing:"這段錄音還沒放進來",tap:"請按「再聽一次」",broken:"這段錄音打不開，請換成 m4a 或 mp3 檔"}[s]||"";
 }
 
 /* ---------- 祝福卡 ---------- */
@@ -222,7 +240,7 @@ function closeCard(){
   resetTiles();
   current=null;
 }
-$("again").onclick=()=>{ if(current){ player.currentTime=0; player.play().then(()=>setStatus("playing")).catch(()=>playNo(current)); } };
+$("again").onclick=()=>{ if(current) playNo(current); };
 $("close").onclick=closeCard;
 $("card").addEventListener("click",e=>{ if(e.target.id==="card") closeCard(); });
 
@@ -242,8 +260,14 @@ $("goFlat").onclick=()=>{ unlockAudio(); show("flat"); };
 $("flatBack").onclick=()=>{ closeCard(); show("home"); };
 
 /* ---------- AR ---------- */
+const AR_READY=!!(window.AFRAME && AFRAME.components && AFRAME.components["mindar-image"]);
+$("goAR").onclick=()=>{
+  unlockAudio();
+  if(!AR_READY){ alert("AR 程式沒有載入成功，請檢查 lib 資料夾，或先用「直接點壽字聽」。"); return; }
+  try{ startAR(); }catch(e){ show("ar"); $("guide").textContent="AR 啟動失敗："+e.message; }
+};
 let sceneEl=null, arSys=null, found=false, frozen=false, risen=false;
-AFRAME.registerComponent("shou-tile",{
+if(AR_READY) AFRAME.registerComponent("shou-tile",{
   schema:{no:{type:"int"}},
   init(){
     this.el.addEventListener("click",()=>{
@@ -307,7 +331,6 @@ function stopAR(){
   try{ arSys&&arSys.stop(); }catch(e){}
   arSys=null; sceneEl=null; $("arwrap").innerHTML="";
 }
-$("goAR").onclick=()=>{ unlockAudio(); startAR(); };
 $("arBack").onclick=()=>{ stopAR(); show("home"); };
 $("freeze").onclick=()=>{
   if(!arSys) return;
