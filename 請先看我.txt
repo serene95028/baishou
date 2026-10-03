@@ -1,0 +1,26 @@
+外公的百壽圖｜上線步驟（全部免費）
+
+【一、放錄音】
+打開 audio 資料夾，照「錄音放這裡.txt」把錄音改名放進去。
+
+【二、上傳到 GitHub】
+1. 到 github.com 用 email 註冊免費帳號。
+2. 右上角「+」→「New repository」。
+   名稱填 baishou，選 Public，按「Create repository」。
+3. 在新頁面點「uploading an existing file」。
+4. 把這個資料夾「裡面的全部東西」一起拖進去
+   （index.html、targets.mind、baishou.jpg、lib、tiles、audio）。
+   注意：是拖裡面的東西，不是拖整個外層資料夾。
+5. 按最下面綠色的「Commit changes」。
+6. 上方點「Settings」→ 左邊點「Pages」→
+   Branch 選「main」、資料夾選「/ (root)」→ 按「Save」。
+7. 等 1～3 分鐘，網址會是：
+   https://你的帳號.github.io/baishou/
+
+【三、測試】
+用手機打開網址，兩個模式都試試看。
+如果用 LINE 點開網址相機打不開，請改用 Safari 或 Chrome 開啟。
+
+【四、之後要補錄音】
+在 GitHub 點進 audio 資料夾 →「Add file」→「Upload files」，
+拖進新的錄音，按「Commit changes」即可，網址不會變。
