@@ -7,14 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
-<script src="lib/aframe.min.js"></script>
+<script src="aframe.min.js"></script>
 <script>window.AFRAME||document.write('<script src="https://cdn.jsdelivr.net/npm/aframe@1.5.0/dist/aframe-v1.5.0.min.js"><\/script>')</script>
-<script src="lib/mindar.js"></script>
+<script src="mindar.js"></script>
 <script>(window.MINDAR&&window.MINDAR.IMAGE)||document.write('<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"><\/script>')</script>
 <script>
 /* ============================================================
    錄音設定：想改顯示的名字，只要改下面引號裡的字
-   錄音檔請放在 audio 資料夾，檔名用兩位數號碼：
+   錄音檔和 index.html 放在同一層，檔名用兩位數號碼：
    01.mp3、02.m4a…（mp3、m4a、wav 都可以）
    ============================================================ */
 const BLESSINGS = [
@@ -191,7 +191,7 @@ let scanDone=false;
   const exts=["mp3","m4a","wav","aac"];
   await Promise.all(BLESSINGS.map(async b=>{
     for(const e of exts){
-      const url="audio/"+pad(b.no)+"."+e;
+      const url=pad(b.no)+"."+e;
       try{ const r=await fetch(url,{method:"HEAD",cache:"no-store"}); if(r.ok){ FOUND[b.no]=url; return; } }catch(err){}
     }
   }));
@@ -228,7 +228,7 @@ function setStatus(s){
 function openCard(no, endCb){
   const b=BLESSINGS.find(x=>x.no===no)||{name:""};
   current=no; onEndCb=null;
-  $("cardSeal").style.backgroundImage="url(tiles/"+pad(no)+".jpg)";
+  $("cardSeal").style.backgroundImage="url("+pad(no)+".jpg)";
   $("cardNo").textContent="第 "+no+" 個壽字";
   $("cardName").textContent=b.name;
   $("card").classList.add("on");
@@ -263,7 +263,7 @@ $("flatBack").onclick=()=>{ closeCard(); show("home"); };
 const AR_READY=!!(window.AFRAME && AFRAME.components && AFRAME.components["mindar-image"]);
 $("goAR").onclick=()=>{
   unlockAudio();
-  if(!AR_READY){ alert("AR 程式沒有載入成功，請檢查 lib 資料夾，或先用「直接點壽字聽」。"); return; }
+  if(!AR_READY){ alert("AR 程式沒有載入成功，請檢查 aframe.min.js 和 mindar.js 有沒有上傳，或先用「直接點壽字聽」。"); return; }
   try{ startAR(); }catch(e){ show("ar"); $("guide").textContent="AR 啟動失敗："+e.message; }
 };
 let sceneEl=null, arSys=null, found=false, frozen=false, risen=false;
@@ -305,7 +305,7 @@ function buildScene(){
     return `<a-plane class="clickable" shou-tile="no:${i+1}" position="${posOf(i,0.001)}" width="${tw}" height="${th}"
       material="src:#t${i+1}; transparent:true; opacity:0; shader:flat"></a-plane>`;
   }).join("");
-  const assets=SPOTS.map((_,i)=>`<img id="t${i+1}" src="tiles/${pad(i+1)}.jpg">`).join("");
+  const assets=SPOTS.map((_,i)=>`<img id="t${i+1}" src="${pad(i+1)}.jpg">`).join("");
   w.innerHTML=`<a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 0.001"
       color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true" vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
     <a-assets>${assets}</a-assets>
