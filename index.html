@@ -27,18 +27,18 @@ const BLESSINGS = [
   { no: 6,  name: "妹妹" },
   { no: 7,  name: "小美" },
   { no: 8,  name: "小華" },
-  { no: 9,  name: "億文" },
+  { no: 9,  name: "小憶文" },
   { no: 10, name: "祝福語" },
-  { no: 11, name: "姨公" },
-  { no: 12, name: "Alice" },
+  { no: 11, name: "志超" },
+  { no: 12, name: "蓓蓓" },
   { no: 13, name: "Zara" },
   { no: 14, name: "Fenny" },
-  { no: 15, name: "舅媽" },
+  { no: 15, name: "吟秋" },
   { no: 16, name: "張弘傑" },
-  { no: 17, name: "爸爸" },
+  { no: 17, name: "張樞" },
   { no: 18, name: "Bee" },
   { no: 19, name: "祝福語" },
-  { no: 20, name: "全家人" }
+  { no: 20, name: "全體祝福" }
 ];
 const CANDLE_FINALE = 20;   // 吹完蠟燭後要播放的號碼
 </script>
@@ -81,7 +81,7 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
 .bar button[hidden]{display:none}
 
 /* AR / 漂浮 */
-#ar{position:fixed;inset:0;background:#000;overflow:hidden}
+#ar{position:fixed;inset:0;background:#000;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 #arwrap{position:absolute;inset:0;overflow:hidden}
 #arwrap video.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 #arwrap a-scene{position:absolute;inset:0;z-index:1}
@@ -169,7 +169,6 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
   <div class="bar">
     <button id="arBack">返回</button>
     <span class="right">
-      <button id="recenter" hidden>移到眼前</button>
       <button id="freeze" hidden>定住畫面</button>
     </span>
   </div>
@@ -312,6 +311,7 @@ async function startMic(){
   let ctx;
   try{
     const AC=window.AudioContext||window.webkitAudioContext;
+    setSession("play-and-record");   // 要錄音前先切到可錄音的模式，第二次吹才不會失敗
     ctx=new AC(); ctx.resume&&ctx.resume();
     const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     if(!blowing){ stream.getTracks().forEach(t=>t.stop()); ctx.close(); return; }
@@ -338,9 +338,10 @@ async function startMic(){
     if(blowing) $("candleText").textContent="麥克風沒有打開，請按「吹不動？點這裡」";
   }
 }
+function setSession(t){ try{ if(navigator.audioSession) navigator.audioSession.type=t; }catch(e){} }
 function stopMic(){
   if(mic){ try{ mic.stream.getTracks().forEach(t=>t.stop()); mic.ctx.close(); }catch(e){} mic=null; }
-  try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  setSession("playback");   // 錄完切回播放，聲音才會從喇叭大聲出來
 }
 async function blownOut(){
   if(!blowing) return; blowing=false; stopMic();
@@ -356,7 +357,7 @@ $("candleCancel").onclick=()=>{ blowing=false; stopMic(); $("candle").classList.
 
 /* ================= AR：認出百壽圖 → 浮起來 → 飄在房間裡 ================= */
 let mode=null, sceneEl=null, arSys=null, found=false, frozen=false, risen=false;
-let phase=null, stableTimer=null, motionOK=true, bobBase=null, bobAmp=0;
+let phase=null, stableTimer=null, motionOK=true, bobBase=null, bobAmp=0, baseScale=1, zoom=1, pinch=null, lastPinch=0;
 const AR_READY=!!(window.AFRAME && AFRAME.components && AFRAME.components["mindar-image"]);
 const THREE_=AR_READY?AFRAME.THREE:null;
 
@@ -388,6 +389,7 @@ if(AR_READY){
     init(){
       this.el.addEventListener("click",()=>{
         if(phase==="lifting") return;
+        if(performance.now()-lastPinch<500) return;
         if(phase==="scan" && !found) return;
         if($("candle").classList.contains("on")) return;
         closeCard();
@@ -435,7 +437,7 @@ function setGuide(t){ $("guide").textContent=t; }
 function startAR(){
   mode="ar"; phase="scan"; show("ar");
   found=false; frozen=false; risen=false; bobBase=null;
-  $("freeze").hidden=true; $("recenter").hidden=true; $("skip").hidden=false;
+  $("freeze").hidden=true; $("skip").hidden=false;
   $("freeze").classList.remove("frozen"); $("freeze").textContent="定住畫面";
   $("frameGuide").style.display="block"; setGuide("開啟相機中…");
   $("arwrap").innerHTML=`<a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no; filterMinCF: 0.0001; filterBeta: 0.001"
@@ -503,20 +505,24 @@ async function liftOff(fromMarker){
     lifter.quaternion.slerpQuaternions(q0,q1,k);
   });
   if(!sceneEl) return;
-  bobBase=p1.clone(); bobAmp=visH*0.008;
+  bobBase=p1.clone(); bobAmp=visH*0.008; baseScale=s0; zoom=1;
   phase="float";
   sceneEl.querySelector("#cam").components["gyro-delta"].start();
-  $("recenter").hidden=false; $("freeze").hidden=false;
-  setGuide(motionOK?"轉動手機看看，再點一個壽字聽祝福":"點一個壽字，聽聽是誰的祝福");
-  const bob=now=>{ if(!sceneEl||phase!=="float") return; if(!frozen) lifter.position.y=bobBase.y+Math.sin(now/900)*bobAmp; requestAnimationFrame(bob); };
-  requestAnimationFrame(bob);
+  $("freeze").hidden=false;
+  setGuide("點壽字聽祝福，兩指可放大縮小");
+  const cam3=sceneEl.querySelector("#cam").object3D;
+  let last=performance.now();
+  const loop=now=>{
+    if(!sceneEl||phase!=="float") return;
+    const dt=Math.min(0.1,(now-last)/1000); last=now;
+    if(!frozen) lifter.position.y=bobBase.y+Math.sin(now/900)*bobAmp;
+    floater.quaternion.slerp(cam3.quaternion, 1-Math.exp(-dt*3));   // 慢慢跟上手機畫面
+    lifter.scale.setScalar(baseScale*zoom);
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
 }
 
-function recenter(){
-  if(phase!=="float"||!sceneEl) return;
-  sceneEl.querySelector("#cam").components["gyro-delta"].recenter();
-}
-$("recenter").onclick=recenter;
 $("skip").onclick=()=>liftOff(false);
 
 async function lightAll(){   // 二十個壽字依序亮起
@@ -555,6 +561,19 @@ function stopAR(){
   arSys=null; sceneEl=null; phase=null; $("arwrap").innerHTML=""; mode=null;
 }
 $("arBack").onclick=()=>{ stopAR(); show("home"); };
+/* 兩指縮放 */
+const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+$("ar").addEventListener("touchstart",e=>{
+  if(phase!=="float"||e.touches.length!==2) return;
+  pinch={d:tdist(e.touches),z:zoom}; lastPinch=performance.now();
+},{passive:true});
+$("ar").addEventListener("touchmove",e=>{
+  if(!pinch||e.touches.length!==2) return;
+  e.preventDefault();
+  zoom=Math.min(2.2,Math.max(0.5,pinch.z*tdist(e.touches)/pinch.d)); lastPinch=performance.now();
+},{passive:false});
+$("ar").addEventListener("touchend",e=>{ if(e.touches.length<2){ if(pinch) lastPinch=performance.now(); pinch=null; } },{passive:true});
+document.addEventListener("gesturestart",e=>{ if(mode==="ar") e.preventDefault(); });
 $("freeze").onclick=()=>{
   if(phase!=="float"||!sceneEl) return;
   frozen=!frozen;
@@ -563,7 +582,7 @@ $("freeze").onclick=()=>{
   else{ g.on=true; arSys&&arSys.video&&arSys.video.play().catch(()=>{}); }
   $("freeze").textContent=frozen?"恢復鏡頭":"定住畫面";
   $("freeze").classList.toggle("frozen",frozen);
-  setGuide(frozen?"畫面已定住，可以放心慢慢點":"轉動手機看看，再點一個壽字聽祝福");
+  setGuide(frozen?"畫面已定住，可以放心慢慢點":"點壽字聽祝福，兩指可放大縮小");
 };
 </script>
 </body>
