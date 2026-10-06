@@ -41,11 +41,28 @@ const BLESSINGS = [
   { no: 20, name: "全體祝福" }
 ];
 const CANDLE_FINALE = 20;   // 吹完蠟燭後要播放的號碼
+
+/* 日記本上的文字：直接改引號裡的字就好（\n 代表換行） */
+const BOOK = {
+  coverNumber: "100",
+  coverTitle:  "外公\n生日快樂",
+  coverCorner: [],
+  coverFoot:   "10/6/2026",
+  page1Title:  "那一天",
+  page1Date:   "2026.10",
+  endTop:      "敬祝",
+  endVerse:    "福如東海\n壽比南山",
+  endSign:     "愛您的 全家人"
+};
+/* 照片：封面請命名 cover.jpg；當天照片命名 photo1.jpg、photo2.jpg…（最多 12 張） */
 </script>
 <style>
+@font-face{font-family:"ShouHand";src:url("shouhand.woff2") format("woff2");font-display:swap}
 :root{
-  --ink:#2a0d2c; --paper:#f7efe0; --paper-dim:#d9c9b4;
-  --seal-red:#d6231f; --gold:#f2c66b; --gold-deep:#b8860b;
+  --ink:#3a0b12; --paper:#f1ede7; --paper-dim:#d8cdc2;
+  --seal-red:#b3202a; --red:#b3202a; --wine:#7a1824; --rose:#c46a6a; --text:#2b1b1b;
+  --gold:#e8c27a; --gold-deep:#a8823a;
+  --hand:"ShouHand","Noto Serif TC","Songti TC",serif;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
@@ -57,19 +74,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .screen{display:none;min-height:100%}
 .screen.on{display:block}
-
-/* 首頁 */
-#home{padding:28px 20px 40px;max-width:640px;margin:0 auto;text-align:center}
-.art{margin:4px auto 30px;padding:10px;background:var(--paper);border-radius:4px;transform:rotate(-1.2deg);box-shadow:0 18px 40px rgba(0,0,0,.45)}
-.art img{display:block;width:100%;height:auto}
-h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0 0 10px;line-height:1.25}
-.sub{font-size:20px;line-height:1.7;color:var(--paper-dim);margin:0 0 32px}
-.big{display:block;width:100%;border:0;border-radius:18px;padding:20px 18px;margin:0 0 16px;font-size:24px;font-weight:700;letter-spacing:.08em;line-height:1.4}
-.big small{display:block;font-size:16px;font-weight:500;letter-spacing:0;opacity:.85;margin-top:4px}
-.big.ar{background:var(--seal-red);color:#fff;box-shadow:0 6px 0 #8e1210}
-.big.flat{background:var(--paper);color:var(--ink);box-shadow:0 6px 0 var(--paper-dim)}
-.big:active{transform:translateY(4px);box-shadow:none}
-.hint{font-size:16px;line-height:1.7;color:var(--paper-dim);margin-top:18px}
 
 /* 頂部列 */
 .bar{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;gap:8px;justify-content:space-between;
@@ -94,15 +98,93 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
 .candleBtn{border:0;border-radius:14px;padding:12px 22px;font-size:20px;font-weight:700;background:var(--gold);color:var(--ink)}
 .frame-guide{position:fixed;z-index:12;left:8%;right:8%;top:24%;aspect-ratio:1.44/1;border:3px dashed rgba(247,239,224,.7);border-radius:10px;pointer-events:none}
 
-/* 直接點選 */
-#flat{padding:calc(env(safe-area-inset-top,0px) + 76px) 10px 40px;text-align:center}
-#flat h2{font-size:24px;margin:0 0 16px;font-weight:700;letter-spacing:.08em}
-.board{position:relative;max-width:900px;margin:0 auto 22px;background:var(--paper);border-radius:4px;text-align:left}
-.board img{display:block;width:100%;height:auto;border-radius:4px}
-.spot{position:absolute;border:0;background:transparent;padding:0;border-radius:6px;transition:transform .25s, box-shadow .25s}
-.spot.lit{transform:scale(1.12);box-shadow:0 0 0 4px var(--gold),0 10px 30px rgba(0,0,0,.5);z-index:2}
-.board.dim .spot{background:rgba(20,6,22,.62);transition:background .4s, box-shadow .4s}
-.board.dim .spot.glow{background:transparent;box-shadow:0 0 0 3px var(--gold),0 0 16px 3px rgba(242,198,107,.75);z-index:2}
+/* ================= 日記本 ================= */
+#book{min-height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  padding:calc(env(safe-area-inset-top,0px) + 18px) 0 calc(env(safe-area-inset-bottom,0px) + 18px);
+  background:radial-gradient(120% 90% at 50% 30%,#5a121b 0%,#3b0a11 55%,#24060a 100%)}
+#book.on{display:flex}
+.stage{perspective:2200px;width:min(92vw,470px);margin-bottom:30px}
+.book{position:relative;width:100%;aspect-ratio:1/1.42;max-height:calc(100svh - 120px);margin:0 auto;transform-style:preserve-3d}
+.book::before{content:"";position:absolute;inset:6px -6px -8px 6px;border-radius:4px 10px 10px 4px;background:#d9d1c6;
+  box-shadow:0 30px 60px rgba(0,0,0,.45);transform:translateZ(-2px)}
+.ribbon{position:absolute;bottom:-46px;right:20%;width:14px;height:70px;background:var(--wine);z-index:-1;
+  clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);box-shadow:0 2px 4px rgba(0,0,0,.25)}
+.page,.cover{position:absolute;inset:0;border-radius:3px 8px 8px 3px;background:var(--paper);color:var(--text);
+  transform-origin:left center;transition:transform .9s cubic-bezier(.45,.05,.25,1),box-shadow .9s;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.page{overflow-y:auto;padding:26px 24px 22px 30px;
+  background:linear-gradient(90deg,rgba(80,30,30,.10) 0,rgba(80,30,30,0) 22px),var(--paper)}
+.page.turned,.cover.turned{transform:rotateY(-178deg);pointer-events:none}
+.page.gone,.cover.gone{visibility:hidden}
+
+/* 封面 */
+.cover{z-index:50;cursor:pointer;overflow:hidden;background:var(--paper);box-shadow:inset 6px 0 10px -6px rgba(0,0,0,.25)}
+.cv-corner{position:absolute;top:6%;right:9%;text-align:right;font-family:"Helvetica Neue",Arial,"Noto Sans TC",sans-serif;
+  font-size:clamp(11px,3.2vw,15px);letter-spacing:.06em;color:var(--text);line-height:1.35}
+.cv-script{position:absolute;left:7%;top:3%;font-family:var(--hand);color:var(--red);-webkit-text-stroke:2px var(--red);
+  font-size:clamp(120px,38vw,190px);line-height:.9;transform:rotate(-7deg);white-space:nowrap;z-index:3;letter-spacing:.02em}
+.cv-frame{position:absolute;left:50%;top:47%;width:48%;aspect-ratio:100/122;transform:translate(-50%,-50%)}
+.cv-frame svg.scallop{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.cv-photo{position:absolute;inset:11% 10%;background:#e2d8cf center/cover no-repeat;display:flex;align-items:center;justify-content:center;
+  text-align:center;color:var(--rose);font-size:14px;line-height:1.6}
+.cv-photo.has{color:transparent}
+.cv-hat{position:absolute;top:-7%;right:14%;width:21%;transform:rotate(9deg);z-index:2}
+.cv-zh{position:absolute;right:8%;bottom:7%;color:var(--red);font-family:var(--hand);-webkit-text-stroke:.7px var(--red);font-size:clamp(38px,12vw,58px);letter-spacing:.06em;line-height:1.15;text-align:right;white-space:nowrap;transform:rotate(-3deg)}
+.cv-foot{position:absolute;left:9%;bottom:5%;font-family:"Helvetica Neue",Arial,"Noto Sans TC",sans-serif;font-size:clamp(11px,3.2vw,14px);
+  letter-spacing:.12em;color:var(--text)}
+.cover-in{position:absolute;inset:0;border-radius:3px 8px 8px 3px;background:var(--wine);transform:rotateY(180deg);backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;align-items:center;justify-content:center;color:#f3d9d4;font-size:18px;letter-spacing:.3em}
+
+/* 內頁共用 */
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(122,24,36,.25);padding-bottom:10px;margin-bottom:16px}
+.ph h2{margin:0;color:var(--red);font-family:var(--hand);-webkit-text-stroke:.5px var(--red);font-weight:400;font-size:clamp(28px,8.6vw,36px);letter-spacing:.04em}
+.ph .script{font-size:clamp(36px,11vw,48px);letter-spacing:.1em;line-height:1.1}
+.ph .kicker{font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;letter-spacing:.2em;color:var(--rose);white-space:nowrap}
+.pnote{font-size:15px;color:#6d4b4b;line-height:1.7;margin:14px 0 0;text-align:center}
+
+/* 照片拼貼 */
+.collage{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ph-item{position:relative;margin:0;padding:6px 6px 6px;background:#fff;box-shadow:0 3px 10px rgba(60,10,15,.18);border:0;cursor:zoom-in}
+.ph-item:nth-child(odd){transform:rotate(-1.2deg)} .ph-item:nth-child(even){transform:rotate(1deg)}
+.ph-item:first-child{grid-column:1/-1;transform:rotate(-.6deg)}
+.ph-item .img{aspect-ratio:3/4;background:#eadfd6 center/cover no-repeat}
+.ph-item:first-child .img{aspect-ratio:3/2}
+.ph-item:nth-child(4n) .img{aspect-ratio:1/1}
+.ph-item.empty{cursor:default;box-shadow:none;background:transparent;border:1.5px dashed rgba(179,32,42,.35)}
+.ph-item.empty .img{background:transparent;display:flex;align-items:center;justify-content:center;color:var(--rose);font-size:13px;text-align:center;line-height:1.6}
+
+/* 百壽圖頁 */
+.board{position:relative;margin:4px 0 0;background:#fff;padding:0;box-shadow:0 4px 14px rgba(60,10,15,.2)}
+.board img{display:block;width:100%;height:auto}
+.spot{position:absolute;border:0;background:transparent;padding:0;border-radius:4px;transition:transform .25s, box-shadow .25s}
+.spot.lit{transform:scale(1.12);box-shadow:0 0 0 3px var(--red),0 10px 24px rgba(0,0,0,.35);z-index:2}
+.board.dim .spot{background:rgba(40,6,10,.62);transition:background .4s, box-shadow .4s}
+.board.dim .spot.glow{background:transparent;box-shadow:0 0 0 3px var(--gold),0 0 16px 3px rgba(232,194,122,.8);z-index:2}
+.pactions{display:flex;gap:10px;margin-top:18px}
+.pbtn{flex:1;border:1.5px solid var(--red);background:transparent;color:var(--red);border-radius:999px;padding:13px 6px;font-size:17px;font-weight:700;letter-spacing:.06em;white-space:nowrap}
+.pbtn.primary{flex:1.35}
+.pbtn.primary{background:var(--red);color:#fff}
+.pbtn:active{transform:translateY(2px)}
+
+/* 結尾頁 */
+.endp{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:100%}
+.endp .script{font-family:var(--hand);color:var(--red);-webkit-text-stroke:.6px var(--red);font-size:clamp(38px,11vw,50px);line-height:1;letter-spacing:.2em;margin-bottom:26px}
+.endp .verse{color:var(--wine);font-family:var(--hand);-webkit-text-stroke:.6px var(--wine);font-weight:400;font-size:clamp(40px,12vw,54px);letter-spacing:.2em;line-height:1.6;margin:0}
+.endp .sign{margin-top:30px;color:#6d4b4b;letter-spacing:.2em;font-size:26px;font-family:var(--hand)}
+.endp .seal{width:56px;height:56px;margin:22px auto 0;border:2px solid var(--red);color:var(--red);display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:26px;transform:rotate(4deg);border-radius:4px;box-shadow:none}
+
+/* 翻頁列 */
+.bnav{display:flex;align-items:center;justify-content:space-between;width:min(92vw,470px);gap:10px}
+.bnav button{border:0;background:rgba(242,238,232,.12);color:#f3e6e2;border-radius:999px;padding:12px 18px;font-size:18px;font-weight:700;min-width:112px}
+.bnav button:disabled{opacity:.3}
+.bnav span{color:#e8cfca;font-family:"Helvetica Neue",Arial,sans-serif;font-size:14px;letter-spacing:.2em}
+.openBtn{border:0;background:var(--paper);color:var(--red);border-radius:999px;padding:14px 34px;font-size:20px;font-weight:700;letter-spacing:.2em}
+.openBtn[hidden],.bnav[hidden]{display:none}
+
+/* 看大圖 */
+#lightbox{position:fixed;inset:0;z-index:45;display:none;align-items:center;justify-content:center;background:rgba(20,4,7,.92);padding:20px}
+#lightbox.on{display:flex}
+#lightbox img{max-width:100%;max-height:100%;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 
 /* 吹蠟燭 */
 #candle{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(20,6,22,.78);padding:20px}
@@ -139,7 +221,7 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
 .seal{flex:none;width:86px;height:86px;border-radius:8px;background-size:cover;background-position:center;box-shadow:0 4px 0 rgba(0,0,0,.18)}
 .sheet.special .seal{box-shadow:0 0 0 4px var(--gold)}
 .who p{margin:0;font-size:17px;color:#6b4c62}
-.who h3{margin:2px 0 0;font-size:34px;font-weight:900;line-height:1.2}
+.who h3{margin:2px 0 0;font-size:48px;font-weight:400;line-height:1.2;font-family:var(--hand);-webkit-text-stroke:.6px currentColor}
 .status{display:flex;align-items:center;gap:10px;margin:18px 0 16px;font-size:20px;font-weight:700;min-height:30px}
 .wave{display:flex;gap:4px;align-items:flex-end;height:24px}
 .wave i{display:block;width:5px;background:var(--seal-red);border-radius:3px;animation:wv 1s ease-in-out infinite}
@@ -156,14 +238,60 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
 </head>
 <body>
 
-<section id="home" class="screen on">
-  <div class="art"><img src="baishou.jpg" alt="百壽圖：二十個不同字體的壽字印章"></div>
-  <h1>外公，生日快樂</h1>
-  <p class="sub">這二十個壽字裡，<br>藏著全家人想對您說的話。</p>
-  <button class="big ar" id="goAR">對著百壽圖看<small>百壽圖會浮起來，之後在哪都能看</small></button>
-  <button class="big flat" id="goFlat">直接點壽字聽<small>最簡單，不用開相機</small></button>
-  <p class="hint">第一次使用時，手機會問能不能用相機、動作與方向，請都按「允許」。</p>
+<section id="book" class="screen on">
+  <div class="stage">
+    <div class="book" id="bookEl">
+      <div class="ribbon" aria-hidden="true"></div>
+
+      <article class="page" id="pg1" aria-label="第一頁：那一天">
+        <header class="ph"><h2 class="script" id="p1Title"></h2><span class="kicker" id="p1Date"></span></header>
+        <div class="collage" id="collage"></div>
+        <p class="pnote">點照片可以看大圖</p>
+      </article>
+
+      <article class="page" id="pg2" aria-label="第二頁：百壽圖">
+        <header class="ph"><h2>二十個壽，二十份祝福</h2></header>
+        <div class="board" id="board"><img src="baishou.jpg" alt="百壽圖：二十個不同字體的壽字印章"></div>
+        <p class="pnote">點一個壽字，聽聽是誰的祝福</p>
+        <div class="pactions">
+          <button class="pbtn primary" id="goAR">百壽圖浮起來</button>
+          <button class="pbtn" data-candle>吹蠟燭</button>
+        </div>
+      </article>
+
+      <article class="page" id="pg3" aria-label="最後一頁">
+        <div class="endp">
+          <div class="script" id="endTop"></div>
+          <p class="verse" id="verse"></p>
+          <div class="sign" id="sign"></div>
+          <div class="seal" aria-hidden="true">壽</div>
+        </div>
+      </article>
+
+      <div class="cover" id="cover" role="button" tabindex="0" aria-label="翻開日記">
+        <div class="cv-corner" id="cvCorner"></div>
+        <div class="cv-script" id="cvScript"></div>
+        <div class="cv-frame">
+          <svg class="scallop" viewBox="0 0 100 122" preserveAspectRatio="none" aria-hidden="true"><path id="scallopPath" fill="none" stroke="#b3202a" stroke-width="2.2" vector-effect="non-scaling-stroke"/></svg>
+          <div class="cv-photo" id="cvPhoto">外公小時候的照片<br>（cover.jpg）</div>
+          <svg class="cv-hat" viewBox="0 0 40 52" aria-hidden="true"><circle cx="20" cy="6" r="5" fill="#b3202a"/><path d="M20 9 L37 50 L3 50 Z" fill="#c62f36"/></svg>
+        </div>
+        <div class="cv-zh" id="cvZh"></div>
+        <div class="cv-foot" id="cvFoot"></div>
+        <div class="cover-in">獻給外公</div>
+      </div>
+    </div>
+  </div>
+  <button class="openBtn" id="openBook">翻開日記</button>
+  <nav class="bnav" id="bnav" hidden>
+    <button id="prevPg">‹ 上一頁</button>
+    <span id="pageNo"></span>
+    <button id="nextPg">下一頁 ›</button>
+  </nav>
 </section>
+
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="照片"><img id="lbImg" alt=""></div>
+
 
 <section id="ar" class="screen">
   <div class="bar">
@@ -183,12 +311,6 @@ h1{font-size:clamp(34px,10vw,52px);font-weight:900;letter-spacing:.12em;margin:0
   </div>
 </section>
 
-<section id="flat" class="screen">
-  <div class="bar"><button id="flatBack">返回</button><span></span></div>
-  <h2>點一個壽字，聽聽是誰的祝福</h2>
-  <div class="board" id="board"><img src="baishou.jpg" alt="百壽圖"></div>
-  <button class="candleBtn" data-candle>🕯️ 吹蠟燭</button>
-</section>
 
 <div id="candle" role="dialog" aria-modal="true" aria-labelledby="candleText">
   <div class="cbox">
@@ -294,8 +416,6 @@ SPOTS.forEach((p,i)=>{
   b.onclick=()=>{ closeCard(); b.classList.add("lit"); openCard(i+1); };
   $("board").appendChild(b); spots.push(b);
 });
-$("goFlat").onclick=()=>{ unlockAudio(); mode="flat"; show("flat"); };
-$("flatBack").onclick=()=>{ closeCard(); mode=null; show("home"); };
 
 /* ================= 吹蠟燭 ================= */
 let mic=null, blowing=false;
@@ -560,7 +680,7 @@ function stopAR(){
   try{ arSys&&arSys.stop(); }catch(e){}
   arSys=null; sceneEl=null; phase=null; $("arwrap").innerHTML=""; mode=null;
 }
-$("arBack").onclick=()=>{ stopAR(); show("home"); };
+$("arBack").onclick=()=>{ stopAR(); mode="flat"; show("book"); };
 /* 兩指縮放 */
 const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
 $("ar").addEventListener("touchstart",e=>{
@@ -584,6 +704,86 @@ $("freeze").onclick=()=>{
   $("freeze").classList.toggle("frozen",frozen);
   setGuide(frozen?"畫面已定住，可以放心慢慢點":"點壽字聽祝福，兩指可放大縮小");
 };
+/* ================= 日記本 ================= */
+(function(){
+  const B=BOOK;
+  $("cvScript").textContent=B.coverNumber;
+  $("cvZh").innerHTML=B.coverTitle.split("\n").join("<br>");
+  $("cvCorner").innerHTML=B.coverCorner.join("<br>");
+  $("cvFoot").textContent=B.coverFoot;
+  $("p1Title").textContent=B.page1Title;
+  $("p1Date").textContent=B.page1Date;
+  $("verse").innerHTML=B.endVerse.split("\n").join("<br>");
+  $("sign").textContent=B.endSign;
+  $("endTop").textContent=B.endTop;
+  // 花邊外框
+  const W=100,H=122,r=3.2,m=r;
+  const edge=(len)=>{ const n=Math.max(2,Math.round(len/(2*r))); return {n,s:len/n}; };
+  let d=`M${m} ${m}`; let e;
+  e=edge(W-2*m); for(let i=0;i<e.n;i++) d+=` a${e.s/2} ${e.s/2} 0 0 1 ${e.s} 0`;
+  e=edge(H-2*m); for(let i=0;i<e.n;i++) d+=` a${e.s/2} ${e.s/2} 0 0 1 0 ${e.s}`;
+  e=edge(W-2*m); for(let i=0;i<e.n;i++) d+=` a${e.s/2} ${e.s/2} 0 0 1 ${-e.s} 0`;
+  e=edge(H-2*m); for(let i=0;i<e.n;i++) d+=` a${e.s/2} ${e.s/2} 0 0 1 0 ${-e.s}`;
+  $("scallopPath").setAttribute("d",d);
+  // 封面照片
+  const tryImg=(names)=>new Promise(res=>{ let i=0; const next=()=>{ if(i>=names.length) return res(null); const im=new Image(); const n=names[i++]; im.onload=()=>res(n); im.onerror=next; im.src=n; }; next(); });
+  tryImg(["cover.jpg","cover.jpeg","cover.png","cover.JPG"]).then(n=>{ if(n){ $("cvPhoto").style.backgroundImage=`url("${n}")`; $("cvPhoto").classList.add("has"); } });
+  // 照片拼貼：photo1.jpg ~ photo12.jpg
+  (async()=>{
+    const found=[];
+    for(let k=1;k<=12;k++){ const n=await tryImg([`photo${k}.jpg`,`photo${k}.jpeg`,`photo${k}.png`,`photo${k}.JPG`]); if(n) found.push(n); else if(k>found.length+2) break; }
+    const box=$("collage"); box.innerHTML="";
+    if(!found.length){
+      for(let k=1;k<=4;k++){ const f=document.createElement("div"); f.className="ph-item empty"; f.innerHTML=`<div class="img">壽宴當天的照片<br>photo${k}.jpg</div>`; box.appendChild(f); }
+      return;
+    }
+    found.forEach(n=>{
+      const f=document.createElement("button"); f.className="ph-item"; f.setAttribute("aria-label","看大圖");
+      f.innerHTML=`<div class="img" style="background-image:url('${n}')"></div>`;
+      f.onclick=()=>{ $("lbImg").src=n; $("lightbox").classList.add("on"); };
+      box.appendChild(f);
+    });
+  })();
+  $("lightbox").onclick=()=>$("lightbox").classList.remove("on");
+})();
+
+const pages=[$("pg1"),$("pg2"),$("pg3")];
+let pageIdx=-1;   // -1 = 封面
+pages.forEach((p,i)=>p.style.zIndex=40-i);
+function renderNav(){
+  const open=pageIdx>=0;
+  $("openBook").hidden=open; $("bnav").hidden=!open;
+  $("pageNo").textContent=open?`${pageIdx+1} / ${pages.length}`:"";
+  $("nextPg").disabled=pageIdx>=pages.length-1;
+  $("prevPg").textContent=pageIdx===0?"‹ 封面":"‹ 上一頁";
+}
+function turn(el,on){
+  if(on){ el.classList.remove("gone"); requestAnimationFrame(()=>el.classList.add("turned")); setTimeout(()=>{ if(el.classList.contains("turned")) el.classList.add("gone"); },900); }
+  else{ el.classList.remove("gone"); requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove("turned"))); }
+}
+function goPage(n){
+  closeCard();
+  n=Math.max(-1,Math.min(pages.length-1,n));
+  if(n===pageIdx) return;
+  if(n>pageIdx){ for(let i=pageIdx;i<n;i++) turn(i<0?$("cover"):pages[i],true); }
+  else{ for(let i=pageIdx-1;i>=n;i--) turn(i<0?$("cover"):pages[i],false); }
+  pageIdx=n; renderNav();
+}
+const openIt=()=>{ unlockAudio(); goPage(0); };
+$("cover").onclick=openIt;
+$("cover").onkeydown=e=>{ if(e.key==="Enter"||e.key===" ") openIt(); };
+$("openBook").onclick=openIt;
+$("nextPg").onclick=()=>goPage(pageIdx+1);
+$("prevPg").onclick=()=>goPage(pageIdx-1);
+// 左右滑動翻頁
+let sx=null, sy=null;
+$("bookEl").addEventListener("touchstart",e=>{ if(e.touches.length===1){ sx=e.touches[0].clientX; sy=e.touches[0].clientY; } },{passive:true});
+$("bookEl").addEventListener("touchend",e=>{
+  if(sx==null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){ dx<0?goPage(pageIdx+1):goPage(pageIdx-1); }
+},{passive:true});
+renderNav();
+mode="flat";
 </script>
 </body>
 </html>
