@@ -141,6 +141,9 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .ph .kicker{font-family:"Helvetica Neue",Arial,sans-serif;font-size:16px;letter-spacing:.2em;color:var(--rose);white-space:nowrap}
 .pnote{font-size:20px;color:#5a3a3a;line-height:1.5;margin:10px 0 0;text-align:center;font-weight:700}
 
+/* ================= 貼紙 ================= */
+.stk{position:absolute;pointer-events:none;z-index:5;height:auto;filter:drop-shadow(0 2px 3px rgba(60,10,15,.28))}
+.ph-hd-stk{position:relative;width:52px;margin-left:auto;margin-right:8px;align-self:center;top:2px}
 /* 照片拼貼 */
 .collage{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ph-item{position:relative;margin:0;padding:6px 6px 6px;background:#fff;box-shadow:0 3px 10px rgba(60,10,15,.18);border:0;cursor:zoom-in}
@@ -264,7 +267,6 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
           <div class="script" id="endTop"></div>
           <p class="verse" id="verse"></p>
           <div class="sign" id="sign"></div>
-          <div class="seal" aria-hidden="true">壽</div>
         </div>
       </article>
 
@@ -704,6 +706,17 @@ $("freeze").onclick=()=>{
   $("freeze").classList.toggle("frozen",frozen);
   setGuide(frozen?"畫面已定住，可以放心慢慢點":"點壽字聽祝福，兩指可放大縮小");
 };
+/* ================= 貼紙（照片頁裝飾） ================= */
+function stkImg(src,css){ const e=document.createElement("img"); e.src=src; e.alt=""; e.className="stk"; Object.assign(e.style,css); return e; }
+function decorateCollage(box){
+  const items=[...box.children];
+  const plan={
+    0:it=>it.append(stkImg("stk_shou.png",{width:"46px",right:"-8px",bottom:"-14px",transform:"rotate(8deg)"})),
+    3:it=>it.append(stkImg("stk_tiger.png",{width:"50px",left:"-10px",top:"-16px",transform:"rotate(-7deg)"})),
+    6:it=>it.append(stkImg("stk_peach.png",{width:"58px",right:"-10px",bottom:"-16px",transform:"rotate(-4deg)"})),
+  };
+  items.forEach((it,i)=>{ const f=plan[i%7]; if(f) f(it); });
+}
 /* ================= 日記本 ================= */
 (function(){
   const B=BOOK;
@@ -735,7 +748,7 @@ $("freeze").onclick=()=>{
     const box=$("collage"); box.innerHTML="";
     if(!found.length){
       for(let k=1;k<=4;k++){ const f=document.createElement("div"); f.className="ph-item empty"; f.innerHTML=`<div class="img">壽宴當天的照片<br>photo${k}.jpg</div>`; box.appendChild(f); }
-      return;
+      decorateCollage(box); return;
     }
     found.forEach(n=>{
       const f=document.createElement("button"); f.className="ph-item"; f.setAttribute("aria-label","看大圖");
@@ -743,6 +756,7 @@ $("freeze").onclick=()=>{
       f.onclick=()=>{ $("lbImg").src=n; $("lightbox").classList.add("on"); };
       box.appendChild(f);
     });
+    decorateCollage(box);
   })();
   $("lightbox").onclick=()=>$("lightbox").classList.remove("on");
 })();
