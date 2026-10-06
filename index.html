@@ -70,7 +70,7 @@ const BOOK = {
 *,*::before,*::after{box-sizing:inherit}
 html,body{margin:0;height:100%;background:var(--ink);color:var(--paper);
   font-family:"Noto Serif TC","Songti TC","PMingLiU",serif;-webkit-tap-highlight-color:transparent}
-button{font:inherit;color:inherit;cursor:pointer}
+button{font:inherit;color:inherit;cursor:pointer;font-family:var(--hand);-webkit-text-stroke:.5px currentColor}
 button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .screen{display:none;min-height:100%}
 .screen.on{display:block}
@@ -78,7 +78,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 /* 頂部列 */
 .bar{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;gap:8px;justify-content:space-between;
   padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 12px;pointer-events:none}
-.bar button{pointer-events:auto;border:0;border-radius:999px;padding:12px 16px;font-size:18px;font-weight:700;
+.bar button{pointer-events:auto;border:0;border-radius:999px;padding:10px 18px;font-size:30px;font-weight:400;
   background:rgba(42,13,44,.82);color:var(--paper);backdrop-filter:blur(6px);white-space:nowrap}
 .bar .right{display:flex;gap:8px}
 .bar button.frozen{background:var(--gold);color:var(--ink)}
@@ -91,11 +91,11 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 #arwrap a-scene{position:absolute;inset:0;z-index:1}
 .guide{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:15;
   text-align:center;padding:14px;border-radius:18px;background:rgba(42,13,44,.84);backdrop-filter:blur(6px)}
-.guide p{margin:0 0 10px;font-size:20px;font-weight:700;line-height:1.5}
+.guide p{margin:0 0 12px;font-size:25px;font-weight:700;line-height:1.45}
 .gbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.skipBtn{border:0;border-radius:14px;padding:12px 18px;font-size:19px;font-weight:700;background:rgba(247,239,224,.18);color:var(--paper)}
+.skipBtn{border:0;border-radius:14px;padding:10px 18px;font-size:30px;font-weight:400;background:rgba(247,239,224,.18);color:var(--paper)}
 .skipBtn[hidden]{display:none}
-.candleBtn{border:0;border-radius:14px;padding:12px 22px;font-size:20px;font-weight:700;background:var(--gold);color:var(--ink)}
+.candleBtn{border:0;border-radius:14px;padding:10px 24px;font-size:32px;font-weight:400;background:var(--gold);color:var(--ink)}
 .frame-guide{position:fixed;z-index:12;left:8%;right:8%;top:24%;aspect-ratio:1.44/1;border:3px dashed rgba(247,239,224,.7);border-radius:10px;pointer-events:none}
 
 /* ================= 日記本 ================= */
@@ -129,17 +129,17 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .cv-photo.has{color:transparent}
 .cv-hat{position:absolute;top:-7%;right:14%;width:21%;transform:rotate(9deg);z-index:2}
 .cv-zh{position:absolute;right:8%;bottom:7%;color:var(--red);font-family:var(--hand);-webkit-text-stroke:.7px var(--red);font-size:clamp(38px,12vw,58px);letter-spacing:.06em;line-height:1.15;text-align:right;white-space:nowrap;transform:rotate(-3deg)}
-.cv-foot{position:absolute;left:9%;bottom:5%;font-family:"Helvetica Neue",Arial,"Noto Sans TC",sans-serif;font-size:clamp(11px,3.2vw,14px);
+.cv-foot{position:absolute;left:9%;bottom:5%;font-family:"Helvetica Neue",Arial,"Noto Sans TC",sans-serif;font-size:clamp(14px,4.2vw,18px);
   letter-spacing:.12em;color:var(--text)}
 .cover-in{position:absolute;inset:0;border-radius:3px 8px 8px 3px;background:var(--wine);transform:rotateY(180deg);backface-visibility:hidden;-webkit-backface-visibility:hidden;
   display:flex;align-items:center;justify-content:center;color:#f3d9d4;font-size:18px;letter-spacing:.3em}
 
 /* 內頁共用 */
-.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(122,24,36,.25);padding-bottom:10px;margin-bottom:16px}
-.ph h2{margin:0;color:var(--red);font-family:var(--hand);-webkit-text-stroke:.5px var(--red);font-weight:400;font-size:clamp(28px,8.6vw,36px);letter-spacing:.04em}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(122,24,36,.25);padding-bottom:8px;margin-bottom:14px}
+.ph h2{margin:0;color:var(--red);font-family:var(--hand);-webkit-text-stroke:.6px var(--red);font-weight:400;font-size:clamp(32px,10vw,42px);letter-spacing:.04em}
 .ph .script{font-size:clamp(36px,11vw,48px);letter-spacing:.1em;line-height:1.1}
-.ph .kicker{font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;letter-spacing:.2em;color:var(--rose);white-space:nowrap}
-.pnote{font-size:15px;color:#6d4b4b;line-height:1.7;margin:14px 0 0;text-align:center}
+.ph .kicker{font-family:"Helvetica Neue",Arial,sans-serif;font-size:16px;letter-spacing:.2em;color:var(--rose);white-space:nowrap}
+.pnote{font-size:20px;color:#5a3a3a;line-height:1.5;margin:10px 0 0;text-align:center;font-weight:700}
 
 /* 照片拼貼 */
 .collage{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -159,8 +159,8 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .spot.lit{transform:scale(1.12);box-shadow:0 0 0 3px var(--red),0 10px 24px rgba(0,0,0,.35);z-index:2}
 .board.dim .spot{background:rgba(40,6,10,.62);transition:background .4s, box-shadow .4s}
 .board.dim .spot.glow{background:transparent;box-shadow:0 0 0 3px var(--gold),0 0 16px 3px rgba(232,194,122,.8);z-index:2}
-.pactions{display:flex;gap:10px;margin-top:18px}
-.pbtn{flex:1;border:1.5px solid var(--red);background:transparent;color:var(--red);border-radius:999px;padding:13px 6px;font-size:17px;font-weight:700;letter-spacing:.06em;white-space:nowrap}
+.pactions{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.pbtn{flex:1;border:1.5px solid var(--red);background:transparent;color:var(--red);border-radius:999px;padding:8px 6px;font-size:32px;font-weight:400;letter-spacing:.06em;white-space:nowrap}
 .pbtn.primary{flex:1.35}
 .pbtn.primary{background:var(--red);color:#fff}
 .pbtn:active{transform:translateY(2px)}
@@ -169,16 +169,16 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .endp{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:100%}
 .endp .script{font-family:var(--hand);color:var(--red);-webkit-text-stroke:.6px var(--red);font-size:clamp(38px,11vw,50px);line-height:1;letter-spacing:.2em;margin-bottom:26px}
 .endp .verse{color:var(--wine);font-family:var(--hand);-webkit-text-stroke:.6px var(--wine);font-weight:400;font-size:clamp(40px,12vw,54px);letter-spacing:.2em;line-height:1.6;margin:0}
-.endp .sign{margin-top:30px;color:#6d4b4b;letter-spacing:.2em;font-size:26px;font-family:var(--hand)}
+.endp .sign{margin-top:30px;color:#5a3a3a;letter-spacing:.2em;font-size:32px;-webkit-text-stroke:.5px currentColor;font-family:var(--hand)}
 .endp .seal{width:56px;height:56px;margin:22px auto 0;border:2px solid var(--red);color:var(--red);display:flex;align-items:center;justify-content:center;
   font-weight:900;font-size:26px;transform:rotate(4deg);border-radius:4px;box-shadow:none}
 
 /* 翻頁列 */
 .bnav{display:flex;align-items:center;justify-content:space-between;width:min(92vw,470px);gap:10px}
-.bnav button{border:0;background:rgba(242,238,232,.12);color:#f3e6e2;border-radius:999px;padding:12px 18px;font-size:18px;font-weight:700;min-width:112px}
+.bnav button{border:0;background:rgba(242,238,232,.12);color:#f3e6e2;border-radius:999px;padding:10px 18px;font-size:30px;font-weight:400;min-width:120px}
 .bnav button:disabled{opacity:.3}
-.bnav span{color:#e8cfca;font-family:"Helvetica Neue",Arial,sans-serif;font-size:14px;letter-spacing:.2em}
-.openBtn{border:0;background:var(--paper);color:var(--red);border-radius:999px;padding:14px 34px;font-size:20px;font-weight:700;letter-spacing:.2em}
+.bnav span{color:#e8cfca;font-family:"Helvetica Neue",Arial,sans-serif;font-size:18px;letter-spacing:.2em}
+.openBtn{border:0;background:var(--paper);color:var(--red);border-radius:999px;padding:12px 40px;font-size:36px;font-weight:400;letter-spacing:.12em}
 .openBtn[hidden],.bnav[hidden]{display:none}
 
 /* 看大圖 */
@@ -187,7 +187,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 #lightbox img{max-width:100%;max-height:100%;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 
 /* 吹蠟燭 */
-#candle{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(20,6,22,.78);padding:20px}
+#candle{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(26,4,8,.93);padding:20px}
 #candle.on{display:flex}
 .cbox{text-align:center;max-width:360px;width:100%}
 .cake{position:relative;width:120px;height:230px;margin:0 auto 18px}
@@ -202,11 +202,11 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .smoke{position:absolute;left:52px;bottom:170px;width:16px;height:16px;border-radius:50%;background:rgba(220,220,220,.6);opacity:0}
 .smoke.go{animation:smoke 1.4s ease-out forwards}
 @keyframes smoke{0%{opacity:.8;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(3)}}
-#candleText{font-size:24px;font-weight:700;line-height:1.5;margin:0 0 14px}
+#candleText{font-size:30px;font-weight:700;line-height:1.5;margin:0 0 14px}
 .meter{height:12px;border-radius:6px;background:rgba(247,239,224,.2);overflow:hidden;margin:0 10px 22px}
 .meter i{display:block;height:100%;width:0;background:var(--gold);border-radius:6px;transition:width .08s}
 .cbox .row{display:flex;gap:12px}
-.cbox .row button{flex:1;border:0;border-radius:14px;padding:15px 8px;font-size:19px;font-weight:700}
+.cbox .row button{flex:1;border:0;border-radius:14px;padding:12px 8px;font-size:30px;font-weight:400}
 #candleCancel{background:rgba(247,239,224,.18);color:var(--paper)}
 #candleTap{background:var(--paper);color:var(--ink)}
 
@@ -220,16 +220,16 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .who{display:flex;align-items:center;gap:16px}
 .seal{flex:none;width:86px;height:86px;border-radius:8px;background-size:cover;background-position:center;box-shadow:0 4px 0 rgba(0,0,0,.18)}
 .sheet.special .seal{box-shadow:0 0 0 4px var(--gold)}
-.who p{margin:0;font-size:17px;color:#6b4c62}
-.who h3{margin:2px 0 0;font-size:48px;font-weight:400;line-height:1.2;font-family:var(--hand);-webkit-text-stroke:.6px currentColor}
-.status{display:flex;align-items:center;gap:10px;margin:18px 0 16px;font-size:20px;font-weight:700;min-height:30px}
+.who p{margin:0;font-size:21px;color:#5a3a3a;font-weight:700}
+.who h3{margin:2px 0 0;font-size:58px;font-weight:400;line-height:1.2;font-family:var(--hand);-webkit-text-stroke:.6px currentColor}
+.status{display:flex;align-items:center;gap:10px;margin:18px 0 16px;font-size:25px;font-weight:700;min-height:30px}
 .wave{display:flex;gap:4px;align-items:flex-end;height:24px}
 .wave i{display:block;width:5px;background:var(--seal-red);border-radius:3px;animation:wv 1s ease-in-out infinite}
 .wave i:nth-child(2){animation-delay:.15s}.wave i:nth-child(3){animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}
 @keyframes wv{0%,100%{height:6px}50%{height:24px}}
 .status.idle .wave{display:none}
 .sheet .row{display:flex;gap:12px}
-.sheet .row button{flex:1;border:0;border-radius:14px;padding:16px 10px;font-size:21px;font-weight:700}
+.sheet .row button{flex:1;border:0;border-radius:14px;padding:12px 10px;font-size:34px;font-weight:400}
 .again{background:var(--seal-red);color:#fff}
 .close{background:#e8dcc8;color:var(--ink)}
 
@@ -250,7 +250,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
       </article>
 
       <article class="page" id="pg2" aria-label="第二頁：百壽圖">
-        <header class="ph"><h2>二十個壽，二十份祝福</h2></header>
+        <header class="ph"><h2>二十份祝福</h2></header>
         <div class="board" id="board"><img src="baishou.jpg" alt="百壽圖：二十個不同字體的壽字印章"></div>
         <p class="pnote">點一個壽字，聽聽是誰的祝福</p>
         <div class="pactions">
@@ -319,7 +319,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
     <div class="meter"><i id="meter"></i></div>
     <div class="row">
       <button id="candleCancel">取消</button>
-      <button id="candleTap">吹不動？點這裡</button>
+      <button id="candleTap">幫我吹熄</button>
     </div>
   </div>
 </div>
@@ -455,7 +455,7 @@ async function startMic(){
     requestAnimationFrame(loop);
   }catch(e){
     try{ ctx&&ctx.close(); }catch(_){}
-    if(blowing) $("candleText").textContent="麥克風沒有打開，請按「吹不動？點這裡」";
+    if(blowing) $("candleText").textContent="麥克風沒有打開，請按「幫我吹熄」";
   }
 }
 function setSession(t){ try{ if(navigator.audioSession) navigator.audioSession.type=t; }catch(e){} }
